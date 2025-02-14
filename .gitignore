@@ -1,0 +1,6 @@
+
+.env
+node_modules
+package-lock.json
+
+echo -e ".env\nnode_modules/\npackage-lock.json" >> .gitignore
