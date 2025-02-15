@@ -3,6 +3,7 @@ const connectDB = require('./config/db');
 const dotenv = require('dotenv');
 const cors = require('cors');
 
+
 // Load environment variables from .env file
 dotenv.config();
 
