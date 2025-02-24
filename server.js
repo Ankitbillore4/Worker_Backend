@@ -3,7 +3,6 @@ const connectDB = require('./config/db');
 const dotenv = require('dotenv');
 const cors = require('cors');
 
-
 // Load environment variables from .env file
 dotenv.config();
 
@@ -22,9 +21,13 @@ app.use(cors());
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/jobs', require('./routes/jobRoutes'));
+app.use('/api/workers', require('./routes/workerRoutes'));
 
-// Define the workers route (add this if it's missing)
-app.use('/api/workers', require('./routes/workerRoutes')); // Assuming you have the workerRoutes.js file
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ message: 'Internal Server Error', error: err.message });
+});
 
 // Catch-all route for undefined routes
 app.all('*', (req, res) => {
