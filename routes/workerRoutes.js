@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const Worker = require("../models/Worker");
+const protect = require("../middlewares/authMiddleware");
 
-// ✅ Add Worker Route
-router.post("/", async (req, res) => {
+// ✅ Add Worker Route (Protected)
+router.post("/", protect, async (req, res) => {
     console.log("Incoming Request Body:", req.body);
 
     const { name, phone, skill, location, experience } = req.body;
@@ -23,7 +24,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-// ✅ Get All Workers Route
+// ✅ Get All Workers Route (Public)
 router.get("/", async (req, res) => {
     try {
         const workers = await Worker.find();
@@ -34,7 +35,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-// ✅ Get Worker by ID Route (FIXED)
+// ✅ Get Worker by ID Route (Public)
 router.get("/:id", async (req, res) => {
     try {
         const worker = await Worker.findById(req.params.id);
@@ -48,8 +49,8 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-// ✅ Update Worker Route (by ID)
-router.put("/:id", async (req, res) => {
+// ✅ Update Worker Route (Protected)
+router.put("/:id", protect, async (req, res) => {
     try {
         const updatedWorker = await Worker.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
 
@@ -64,8 +65,8 @@ router.put("/:id", async (req, res) => {
     }
 });
 
-// ✅ Delete Worker Route (by ID)
-router.delete("/:id", async (req, res) => {
+// ✅ Delete Worker Route (Protected)
+router.delete("/:id", protect, async (req, res) => {
     try {
         const deletedWorker = await Worker.findByIdAndDelete(req.params.id);
 

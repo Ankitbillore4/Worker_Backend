@@ -1,14 +1,14 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/User"); // Ensure you have a User model
+const User = require("../models/User");
 const dotenv = require("dotenv");
 
 dotenv.config();
 
-const protect = async (req, res, next) => {
-    let token = req.headers.authorization?.split(" ")[1]; // Optional chaining for cleaner token extraction
+const authMiddleware = async (req, res, next) => {
+    let token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
-        return res.status(401).json({ message: "Not authorized, no token provided" });
+        return res.status(401).json({ message: "Access Denied. No token provided." });
     }
 
     try {
@@ -23,8 +23,8 @@ const protect = async (req, res, next) => {
         next();
     } catch (error) {
         console.error("Authentication error:", error.message);
-        return res.status(401).json({ message: "Not authorized, invalid token" });
+        return res.status(400).json({ message: "Invalid token" });
     }
 };
 
-module.exports = protect; // Exporting as a function, not an object
+module.exports = authMiddleware;

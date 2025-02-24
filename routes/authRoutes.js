@@ -2,38 +2,82 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const Contractor = require("../models/Contractor"); // Import Contractor model
 const router = express.Router();
 
-// ✅ User Register
+// ✅ User or Contractor Register
 router.post("/register", async (req, res) => {
-    const { name, email, password, isAdmin } = req.body;
-    if (!name || !email || !password) return res.status(400).json({ message: "All fields are required" });
+    console.log("Incoming Request Body:", req.body); // Debugging ke liye
 
+    const { name, email, password, phone, role, location, experience, isAdmin } = req.body;
+
+    // ✅ Validate fields
+    if (!name || !email || !password || !phone) {
+        return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // ✅ Check if user or contractor already exists
     const userExists = await User.findOne({ email });
-    if (userExists) return res.status(400).json({ message: "User already exists" });
+    const contractorExists = await Contractor.findOne({ email });
 
+    if (userExists || contractorExists) {
+        return res.status(400).json({ message: "User already exists" });
+    }
+
+    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ name, email, password: hashedPassword, isAdmin });
 
-    await newUser.save();
-    res.status(201).json({ message: "User registered successfully" });
+    if (role === "contractor") {
+        // ✅ Register as Contractor
+        if (!location || !experience) {
+            return res.status(400).json({ message: "Contractor must provide location and experience" });
+        }
+
+        const newContractor = new Contractor({ name, email, password: hashedPassword, phone, location, experience, role });
+        await newContractor.save();
+        return res.status(201).json({ message: "Contractor registered successfully" });
+    } else {
+        // ✅ Register as Normal User or Worker
+        const newUser = new User({ name, email, password: hashedPassword, phone, role, isAdmin });
+        await newUser.save();
+        return res.status(201).json({ message: "User registered successfully" });
+    }
 });
 
-// ✅ User Login
+// ✅ User or Contractor Login
 router.post("/login", async (req, res) => {
+    console.log("Incoming Request Body:", req.body); // Debugging ke liye
+
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ message: "All fields are required" });
 
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    // ✅ Validate fields
+    if (!email || !password) {
+        return res.status(400).json({ message: "All fields are required" });
+    }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    // ✅ Check if User or Contractor exists
+    let user = await User.findOne({ email });
+    let contractor = await Contractor.findOne({ email });
+
+    if (!user && !contractor) {
+        return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    // ✅ Identify the correct user type
+    const account = user || contractor;
+    
+    // ✅ Compare password
+    const isMatch = await bcrypt.compare(password, account.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
     // ✅ Generate JWT Token
-    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, "your_secret_key", { expiresIn: "1h" });
+    const token = jwt.sign(
+        { id: account._id, role: account.role, isAdmin: account.isAdmin || false },
+        "your_secret_key",
+        { expiresIn: "1h" }
+    );
 
-    res.json({ token });
+    res.json({ token, role: account.role, message: "Login successful" });
 });
 
 module.exports = router;
