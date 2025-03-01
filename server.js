@@ -12,28 +12,26 @@ connectDB();
 // Initialize Express app
 const app = express();
 
-// Middleware to parse JSON requests
-app.use(express.json());
-
-// Enable CORS for handling cross-origin requests
-app.use(cors());
+// Middleware
+app.use(express.json()); // Parse JSON requests
+app.use(cors()); // Enable CORS
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/jobs', require('./routes/jobRoutes'));
-app.use('/api/workers', require('./routes/workerRoutes'));
+app.use('/api/contractors', require('./routes/contractorRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    console.error('Error:', err.message);
+    res.status(err.status || 500).json({ message: err.message || 'Internal Server Error' });
 });
 
 // Catch-all route for undefined routes
-app.all('*', (req, res) => {
+app.use('*', (req, res) => {
     res.status(404).json({ message: 'Route not found' });
 });
 
 // Start the server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

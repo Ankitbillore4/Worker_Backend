@@ -2,7 +2,8 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const Contractor = require("../models/Contractor"); // Import Contractor model
+const Contractor = require("../models/Contractor");
+
 const router = express.Router();
 
 // ✅ User or Contractor Register
@@ -11,7 +12,7 @@ router.post("/register", async (req, res) => {
 
     const { name, email, password, phone, role, location, experience, isAdmin } = req.body;
 
-    // ✅ Validate fields
+    // ✅ Validate required fields
     if (!name || !email || !password || !phone) {
         return res.status(400).json({ message: "All fields are required" });
     }
@@ -33,12 +34,29 @@ router.post("/register", async (req, res) => {
             return res.status(400).json({ message: "Contractor must provide location and experience" });
         }
 
-        const newContractor = new Contractor({ name, email, password: hashedPassword, phone, location, experience, role });
+        const newContractor = new Contractor({
+            name,
+            email,
+            password: hashedPassword,
+            phone,
+            location,
+            experience,
+            role: "contractor" // ✅ Ensure the role is always "contractor"
+        });
+
         await newContractor.save();
         return res.status(201).json({ message: "Contractor registered successfully" });
     } else {
-        // ✅ Register as Normal User or Worker
-        const newUser = new User({ name, email, password: hashedPassword, phone, role, isAdmin });
+        // ✅ Register as Normal User
+        const newUser = new User({
+            name,
+            email,
+            password: hashedPassword,
+            phone,
+            role: "user", // ✅ Ensure the role is always "user"
+            isAdmin: isAdmin || false
+        });
+
         await newUser.save();
         return res.status(201).json({ message: "User registered successfully" });
     }
