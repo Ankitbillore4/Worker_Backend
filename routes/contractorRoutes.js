@@ -48,6 +48,39 @@ router.post("/register", async (req, res) => {
     }
 });
 
+// ✅ Contractor Login Route (Public)
+router.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    try {
+        // Find contractor by email
+        const contractor = await Contractor.findOne({ email });
+        if (!contractor) {
+            return res.status(400).json({ message: "Invalid Email or Password err" });
+        }
+
+        // Compare password
+        const isMatch = await bcrypt.compare(password, contractor.password);
+        // const isMatch = await contractor.comparePassword(password)
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid Email or Password pp" });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign({ id: contractor._id, role: "contractor" }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+        res.status(200).cookie("token", token).json({ message: "Login successful", contractor, token });
+    } catch (error) {
+        console.error("Error logging in contractor:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
+
 // ✅ Get All Contractors Route (Public)
 router.get("/", async (req, res) => {
     try {
@@ -85,7 +118,8 @@ router.put("/:id", protect, async (req, res) => {
             return res.status(403).json({ message: "Access denied. Only the contractor or admin can update details." });
         }
 
-        const updatedContractor = await Contractor.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        const updatedContractor = await Contractor.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
         res.status(200).json({ message: "Contractor updated successfully", contractor: updatedContractor });
     } catch (error) {
         console.error("Error updating contractor:", error);
@@ -101,8 +135,8 @@ router.delete("/:id", protect, async (req, res) => {
             return res.status(404).json({ message: "Contractor not found" });
         }
 
-        if (req.user.role !== "admin") {
-            return res.status(403).json({ message: "Access denied. Only admins can delete contractors." });
+        if (req.user.id !== contractor._id.toString() && req.user.role !== "admin") {
+            return res.status(403).json({ message: "Access denied. Only the contractor or admin can update details." });
         }
 
         await Contractor.findByIdAndDelete(req.params.id);
