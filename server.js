@@ -6,7 +6,7 @@ const morgan = require('morgan');
 
 // Load environment variables from .env file
 dotenv.config();
-
+ 
 // Connect to MongoDB
 connectDB();
 
