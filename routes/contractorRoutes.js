@@ -137,7 +137,7 @@ router.delete("/:id", protect, async (req, res) => {
 
         if (req.user.id !== contractor._id.toString() && req.user.role !== "admin") {
             return res.status(403).json({ message: "Access denied. Only the contractor or admin can update details." });
-        }
+        } 
  
         await Contractor.findByIdAndDelete(req.params.id);
         res.status(200).json({ message: "Contractor deleted successfully" });
@@ -148,3 +148,4 @@ router.delete("/:id", protect, async (req, res) => {
 });
 
 module.exports = router;
+ 
