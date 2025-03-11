@@ -16,6 +16,7 @@ const app = express();
 // Middleware
 app.use(express.json()); // Parse JSON requests
 app.use(cors()); // Enable CORS
+app.use(express.urlencoded({ extended: true })); // ✅ Support for form data
 
 // Enable Morgan logging only in development mode
 if (process.env.NODE_ENV === "development") {

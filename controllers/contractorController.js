@@ -8,7 +8,7 @@ exports.getContractors = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error });
     }
-};
+}; 
 
 // ✅ Get a single contractor by ID
 exports.getContractorById = async (req, res) => {

@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
 
 const contractorSchema = new mongoose.Schema(
   {
@@ -14,12 +13,19 @@ const contractorSchema = new mongoose.Schema(
     availability: { type: String, enum: ["Available", "Busy"], default: "Available" }, // ✅ Contractor availability
     portfolio: { type: [String], default: [] }, // ✅ Array of image URLs (work samples)
     ratings: { type: Number, default: 0 }, // ✅ Average rating
-    role: { type: String, enum: ["contractor"], default: "contractor" }
+    meetingCharges: { type: Number, required: true }, // ✅ New field for contractor meeting charges
+    reviews: [
+      { 
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // ✅ User who gave the review
+        rating: { type: Number, required: true, min: 1, max: 5 }, // ✅ Rating (1-5)
+        comment: { type: String } // ✅ Optional review comment
+      }
+    ],
+    role: { type: String, enum: ["contractor"], default: "contractor" } 
   },
   { timestamps: true }
 );
 
-
-const Contractor = mongoose.model("Contractor", contractorSchema);
+const Contractor = mongoose.model("Contractor", contractorSchema); 
 
 module.exports = Contractor;

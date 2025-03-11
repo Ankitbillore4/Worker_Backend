@@ -41,7 +41,7 @@ router.post("/register", async (req, res) => {
         // Generate JWT token
         const token = jwt.sign({ id: contractor._id, role: "contractor" }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-        res.status(201).json({ message: "Contractor registered successfully", contractor, token });
+        res.status(201).json({ message: "Contractor registered successfully", Contractor, token });
     } catch (error) {
         console.error("Error registering contractor:", error);
         res.status(500).json({ message: "Server error", error: error.message });
@@ -146,6 +146,33 @@ router.delete("/:id", protect, async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 });
+
+
+// ✅ Search Contractors based on filters
+router.get('/search', async (req, res) => {
+    try {
+        const { location, experience, minCharges, maxCharges } = req.query;
+
+        let query = {};
+
+        if (location) query.location = { $regex: new RegExp(location, 'i') };
+        if (experience) query.experience = { $gte: Number(experience) };
+        if (minCharges && maxCharges) {
+            query.meetingCharges = { $gte: Number(minCharges), $lte: Number(maxCharges) };
+        } else if (minCharges) {
+            query.meetingCharges = { $gte: Number(minCharges) };
+        } else if (maxCharges) {
+            query.meetingCharges = { $lte: Number(maxCharges) };
+        }
+
+        const contractors = await Contractor.find(query);
+        res.json({ success: true, contractors });
+    } catch (error) {
+        console.error("Search Error:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+});
+
 
 module.exports = router;
  
